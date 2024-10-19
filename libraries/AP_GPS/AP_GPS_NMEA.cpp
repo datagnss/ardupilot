@@ -529,7 +529,7 @@ bool AP_GPS_NMEA::_term_complete()
 
             case _GPS_SENTENCE_PALYSBLS: {
 #if GPS_MOVING_BASELINE
-                const auto &bls = _alysbls;
+                const auto &bls = _alysbls_heading;
                 _last_PALYSBLS_ms = now;
                 if (now - _last_GGA_ms > 500 || bls.mb_quality_indicator != 4) { // RTK Fixed
                     // now - _last_GGA_ms > 500 is a failsafe to prevent us from using stale data
@@ -758,7 +758,7 @@ bool AP_GPS_NMEA::_term_complete()
  */
 void AP_GPS_NMEA::parse_alysbls_field(uint16_t term_number, const char *term)
 {
-    auto &bls = _alysbls;
+    auto &bls = _alysbls_heading;
 
     switch (term_number) {
     case 5:
