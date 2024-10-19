@@ -89,7 +89,7 @@ private:
         _GPS_SENTENCE_AGRICA = 193, // extension for Unicore, 65 fields
         _GPS_SENTENCE_VERSIONA = 270, // extension for Unicore, version, 10 fields
         _GPS_SENTENCE_UNIHEADINGA = 290, // extension for Unicore, uniheadinga, 20 fields
-        _GPS_SENTENCE_PALYSBLS = 310, // extension for AllyStar, moving baseline, 9 fields
+        _GPS_SENTENCE_PALYSBLS = 320, // extension for AllyStar, moving baseline, 9 fields
         _GPS_SENTENCE_OTHER = 0
     };
 
