@@ -546,8 +546,7 @@ bool AP_GPS_NMEA::_term_complete()
                 state.relPosD = alt_diff;
                 state.relposheading_ts = now;
                 if (calculate_moving_base_yaw(bearing, dist, alt_diff)) {
-                    state.have_gps_yaw_accuracy = true;
-                    state.gps_yaw_accuracy = bls.heading_sd;
+                    state.have_gps_yaw_accuracy = false;
                     _last_yaw_ms = now;
                 }
                 state.gps_yaw_configured = true;
