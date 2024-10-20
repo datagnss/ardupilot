@@ -1022,7 +1022,7 @@ void AP_GPS_NMEA::send_config(void)
 
 
     // For Allystar
-    case AP_GPS::GPS_TYPE_ALLYSTAR:{
+    case AP_GPS::GPS_TYPE_ALLYSTAR: {
         // Allystar no longer supports CFG-PWRCTL, it is recommended to use CFG-PWRCTL2 (0x06,0x44).
         // CFG-PWRCTL2 does not support ASCII mode
         /*
