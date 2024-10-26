@@ -89,7 +89,8 @@ private:
         _GPS_SENTENCE_AGRICA = 193, // extension for Unicore, 65 fields
         _GPS_SENTENCE_VERSIONA = 270, // extension for Unicore, version, 10 fields
         _GPS_SENTENCE_UNIHEADINGA = 290, // extension for Unicore, uniheadinga, 20 fields
-        _GPS_SENTENCE_PALYSBLS = 320, // extension for AllyStar, moving baseline, 9 fields
+        _GPS_SENTENCE_PALYSBLS = 320, // extension for AllyStar, moving baseline with quality indicator, 9 fields
+        _GPS_SENTENCE_GST = 340, // standard NMEA GST message, 9 fields, for example, $GPGST,172814.0,0.006,0.023,0.020,273.6,0.023,0.020,0.031*6A
         _GPS_SENTENCE_OTHER = 0
     };
 
@@ -181,10 +182,13 @@ private:
     uint16_t _new_hdop;                                                 ///< HDOP parsed from a term
     uint8_t _new_satellite_count;                       ///< satellite count parsed from a term
     uint8_t _new_quality_indicator;                                     ///< GPS quality indicator parsed from a term
+    uint16_t _new_lat_accuracy;                                     ///< latitude accuracy parsed from a term 
+    uint16_t _new_lon_accuracy;                                     ///< longitude accuracy parsed from a term 
 
     uint32_t _last_RMC_ms;
     uint32_t _last_GGA_ms;
     uint32_t _last_VTG_ms;
+    uint32_t _last_GST_ms;
     uint32_t _last_yaw_ms;
     uint32_t _last_vvelocity_ms;
     uint32_t _last_vaccuracy_ms;

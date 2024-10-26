@@ -282,9 +282,7 @@ bool AP_GPS_NMEA::_have_new_message()
 #endif // AP_GPS_NMEA_UNICORE_ENABLED
 
 #if AP_GPS_NMEA_ALLYSTAR_ENABLED
-
 #if GPS_MOVING_BASELINE
-
     if (now - _last_PALYSBLS_ms > 500) {
         if (_last_PALYSBLS_ms != 0) {
             // we have lost PALYSBLS
@@ -292,9 +290,7 @@ bool AP_GPS_NMEA::_have_new_message()
             _last_PALYSBLS_ms = 0;
         }
     }   
-
 #endif // GPS_MOVING_BASELINE
-
 #endif // AP_GPS_NMEA_ALLYSTAR_ENABLED
 
     _last_fix_ms = now;
@@ -390,6 +386,10 @@ bool AP_GPS_NMEA::_term_complete()
                     }
                 }
                 // VTG has no fix indicator, can't change fix status
+                break;
+            case _GPS_SENTENCE_GST:
+                _last_GST_ms = now;
+                state.rtk_accuracy = sqrtf(_new_lat_accuracy * _new_lat_accuracy + _new_lon_accuracy * _new_lon_accuracy);
                 break;
             case _GPS_SENTENCE_HDT:
             case _GPS_SENTENCE_THS:
@@ -526,7 +526,6 @@ bool AP_GPS_NMEA::_term_complete()
 #endif // AP_GPS_NMEA_UNICORE_ENABLED
 
 #if AP_GPS_NMEA_ALLYSTAR_ENABLED // AllyStar Moving Baseline extensions
-
             case _GPS_SENTENCE_PALYSBLS: {
 #if GPS_MOVING_BASELINE
                 const auto &bls = _alysbls_heading;
@@ -550,7 +549,6 @@ bool AP_GPS_NMEA::_term_complete()
                     _last_yaw_ms = now;
                 }
                 state.gps_yaw_configured = true;
-
 #endif // GPS_MOVING_BASELINE
                 break;
             }
@@ -596,12 +594,11 @@ bool AP_GPS_NMEA::_term_complete()
           AllyStar Moving Baseline extensions
         */
 #if AP_GPS_NMEA_ALLYSTAR_ENABLED
-        if (strncmp(_term, "PALYSBLS") == 0) {
+        if (strncmp(_term, "PALYSBLS", 8) == 0) {
             _sentence_type = _GPS_SENTENCE_PALYSBLS;
             return false;
         }
 #endif  
-
 
         /*
           The first two letters of the NMEA term are the talker
@@ -624,6 +621,8 @@ bool AP_GPS_NMEA::_term_complete()
             _sentence_type = _GPS_SENTENCE_THS;
         } else if (strcmp(term_type, "VTG") == 0) {
             _sentence_type = _GPS_SENTENCE_VTG;
+        } else if (strcmp(term_type, "GST") == 0) {
+            _sentence_type = _GPS_SENTENCE_GST;
         } else {
             _sentence_type = _GPS_SENTENCE_OTHER;
         }
@@ -685,6 +684,15 @@ bool AP_GPS_NMEA::_term_complete()
             _new_altitude = _parse_decimal_100(_term);
             break;
 
+        // accuracy
+        // 
+        case _GPS_SENTENCE_GST + 6: // GST message, latitude accuracy
+            _new_lat_accuracy = _parse_decimal_100(_term);
+            break;
+        case _GPS_SENTENCE_GST + 7: // GST message, longitude accuracy
+            _new_lon_accuracy = _parse_decimal_100(_term);
+            break;
+
         // course and speed
         //
         case _GPS_SENTENCE_RMC + 7: // Speed (GPRMC)
@@ -733,7 +741,7 @@ bool AP_GPS_NMEA::_term_complete()
 
 #if AP_GPS_NMEA_ALLYSTAR_ENABLED
 #if GPS_MOVING_BASELINE
-        case _GPS_SENTENCE_PALYSBLS + 1 ... _GPS_SENTENCE_PALYSBLS + 9: // PALYSBLS message
+        case _GPS_SENTENCE_PALYSBLS + 1 ... _GPS_SENTENCE_PALYSBLS + 8: // PALYSBLS message
             parse_alysbls_field(_term_number, _term);
             break;
 #endif // GPS_MOVING_BASELINE
@@ -793,10 +801,8 @@ void AP_GPS_NMEA::parse_alysbls_field(uint16_t term_number, const char *term)
         break;
     }
 }
-
-#endif
-
-#endif
+#endif // GPS_MOVING_BASELINE
+#endif // AP_GPS_NMEA_ALLYSTAR_ENABLED
 
 #if AP_GPS_NMEA_UNICORE_ENABLED
 /*
@@ -1021,7 +1027,14 @@ void AP_GPS_NMEA::send_config(void)
     }
 
 
-    // For Allystar
+#if AP_GPS_NMEA_ALLYSTAR_ENABLED
+    // Allystar GNSS receiver
+    // for allystar heading receiver, the default rate is 5Hz
+    case AP_GPS::GPS_TYPE_ALLYSTAR_MOVINGBASE_NMEA: {
+        state.gps_yaw_configured = true;
+        FALLTHROUGH; // continue to force the rate to 5Hz
+    }
+
     case AP_GPS::GPS_TYPE_ALLYSTAR:{
         // Allystar no longer supports CFG-PWRCTL, it is recommended to use CFG-PWRCTL2 (0x06,0x44).
         // CFG-PWRCTL2 does not support ASCII mode
@@ -1041,6 +1054,7 @@ void AP_GPS_NMEA::send_config(void)
         break;
     }
 
+#endif // AP_GPS_NMEA_ALLYSTAR_ENABLED
 
     default:
         break;
